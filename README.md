@@ -84,10 +84,4 @@ The project relies on the following key Python packages (see `requirements.txt`)
 
 ---
 
-## 💾 Usage (Command Line)
 
-### 1. **Setup**
-
-Create a `.env` file in your project root:
-```ini
-GENAI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
