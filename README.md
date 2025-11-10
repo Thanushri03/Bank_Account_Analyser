@@ -83,6 +83,97 @@ Built with **Python**, this solution leverages **Gemini API** and **FAISS** to c
 
 ---
 
+## ⚙️ Pseudo Code: Ingestion & Indexing
+
+The following pseudo code outlines the **core ingestion and indexing pipeline** for the Bank Statement Analyzer.  
+It demonstrates how PDFs and images are processed, chunked, embedded, and stored in the FAISS vector index.
+
+---
+
+### 🧩 Ingestion Function
+
+```pseudo
+FUNCTION ingest_files(PATHS):
+  CHUNKS_META = []
+  FOR each PATH in PATHS:
+    NAME = basename(PATH)
+    IF PATH is PDF:
+      PAGES = pdf_pages_text(PATH)  // Tries selectable text first
+      FOR each PAGE_NO, TEXT in PAGES:
+        IF TEXT is empty:
+          // Fallback to OCR for scanned pages
+          IMAGE = pdf_to_images(PATH)[PAGE_NO - 1]
+          TEXT = image_to_text(IMAGE)
+        END IF
+        // Chunk text into passages with source/page metadata
+        META = chunk_page_text(TEXT, SOURCE=NAME, PAGE_NO=PAGE_NO)
+        CHUNKS_META.EXTEND(META)
+    ELSE IF PATH is Image:
+      IMAGE = open_image(PATH)
+      TEXT = image_to_text(IMAGE)
+      META = chunk_page_text(TEXT, SOURCE=NAME, PAGE_NO=1)
+      CHUNKS_META.EXTEND(META)
+    END IF
+  RETURN CHUNKS_META
+END FUNCTION
+```
+
+---
+
+### 🧠 Index Building Function
+
+```pseudo
+
+FUNCTION build_index_from_chunks(CHUNKS_META):
+  PASSAGES = [c["label"] for c in CHUNKS_META]
+  EMBEDDER = SentenceTransformer("all-MiniLM-L6-v2")
+  VECTORS = EMBEDDER.encode(PASSAGES)
+  Normalize_L2(VECTORS)
+  FAISS_INDEX = IndexFlatIP(DIM)
+  FAISS_INDEX.add(VECTORS)
+  FAISS_INDEX.save("rag.index")
+  PASSAGES.save("passages.json")
+  RETURN EmbeddingsIndex
+END FUNCTION
+
+```
+
+### 🧠 Query Handling & Retrieval Function
+
+```pseudo
+FUNCTION query_rag_system(QUERY):
+  // Load FAISS index and passage metadata
+  FAISS_INDEX = load_faiss_index("rag.index")
+  PASSAGES = load_passages("passages.json")
+
+  // Embed the user query
+  EMBEDDER = SentenceTransformer("all-MiniLM-L6-v2")
+  QUERY_VECTOR = EMBEDDER.encode([QUERY])
+  Normalize_L2(QUERY_VECTOR)
+
+  // Retrieve top-k relevant passages
+  TOP_K = 5
+  SCORES, IDS = FAISS_INDEX.search(QUERY_VECTOR, TOP_K)
+  CONTEXT = [PASSAGES[i] for i in IDS]
+
+  // Combine query and retrieved context
+  PROMPT = format_prompt(QUERY, CONTEXT)
+
+  // Call Gemini API with strict JSON system prompt
+  RESPONSE = GEMINI.generate(
+                model="gemini-pro",
+                system_prompt="Return structured JSON for bank statement data.",
+                user_prompt=PROMPT
+             )
+
+  // Parse and return JSON output
+  RESULT = parse_json(RESPONSE)
+  RETURN RESULT
+END FUNCTION
+
+```
+
+
 ### 💬 Example Query
 
 
