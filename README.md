@@ -1,87 +1,117 @@
-# Bank_Account_Analyser
-# 🤖 Bank Statement Analyzer (RAG + OCR + Gemini)
+# 🤖 Bank Statement Analyzer (RAG + OCR → Gemini)
 
-## 📌 Overview: Retrieval-Augmented Generation (RAG) System
+## 📌 Overview
 
-The **Bank Statement Analyzer** is a powerful Python application designed to extract structured financial data and generate insights from **unstructured PDF and image bank statements**.  
+**Bank Statement Analyzer** is a robust Python system designed to extract **structured financial data** and generate **insights** from **unstructured PDF and image bank statements**.  
+It implements a **Retrieval-Augmented Generation (RAG)** architecture using **OCR**, **FAISS vector indexing**, and the **Gemini API**.
 
-It employs a **Retrieval-Augmented Generation (RAG)** architecture, combining:
-- **Optical Character Recognition (OCR)**
-- **Advanced text chunking**
-- **Vector embeddings (FAISS)**
-- **Gemini API**  
+### 🧩 System Highlights
+- **OCR** processes non-selectable text in PDFs and images.  
+- **FAISS** builds a high-performance vector database for semantic search.  
+- **Gemini** (via `google-genai`) uses a strict system prompt to output a **valid JSON** containing:
+  - Account Information  
+  - Summary Values  
+  - Financial Insights  
 
-This combination enables robust and accurate financial information extraction.  
-
-Built with Python, this solution addresses the challenge of converting raw, multi-format financial documents into clean, machine-readable structured data.
+Built with **Python**, this solution leverages **Gemini API** and **FAISS** to convert raw, multi-format financial documents into clean, structured, machine-readable records.
 
 ---
 
 ## 🛠️ Features
 
 ### 📄 Multi-Format Ingestion
-- Processes both **PDF documents** (supporting selectable text via **PyMuPDF**) and **non-selectable/scanned documents** via **OCR**.  
-- Also supports **image files (PNG, JPG, TIFF)**.
+- Processes **PDFs** (selectable text via PyMuPDF or scanned via OCR).  
+- Supports **image formats** such as PNG, JPG, and TIFF.
 
 ### 🧠 Intelligent Text Chunking
-- Uses **tiktoken** to precisely measure token length.  
-- Splits pages into overlapping chunks (default **800 tokens**) based on sentence boundaries to preserve context.
+- Uses **tiktoken** for token-aware segmentation.  
+- Creates **overlapping text passages** (default: 800 tokens, 150 overlap) to maintain contextual integrity.
 
 ### 🔎 FAISS Vector Indexing
-- Employs **Sentence-Transformers** and **FAISS** for creating a **high-performance, disk-backed index**.  
-- Enables efficient **semantic retrieval** of relevant text passages.
+- Uses **Sentence-Transformers** to generate dense embeddings.  
+- Stores them in a **disk-backed FAISS index (`rag.index`)** for fast semantic retrieval.
 
 ### ✨ Gemini-Powered Extraction
-- Leverages the **Gemini API** with a detailed **system prompt** to perform **zero-shot structured data extraction**.  
-- Produces a valid **JSON object** containing:
-  - Account Info  
-  - Summary Values  
-  - Financial Insights  
+- Leverages **Gemini API** for **zero-shot structured data extraction**.  
+- Outputs follow a **strict JSON schema** defined for bank statement analysis.
 
 ### 🖥️ Streamlit UI
 - Provides an **interactive web interface** for:
   - File upload  
-  - Index building/loading  
-  - Querying and JSON visualization  
+  - Index building/loading/merging  
+  - Query input and structured result display  
 
 ---
 
-## ⚙️ Dependencies
+## 🔁 Workflow
 
-The project relies on the following key Python packages (see `requirements.txt`):
+1. **Ingest Documents:**  
+   Input raw, multi-page PDF or image files.
 
-- `google-genai` → Gemini API integration  
-- `faiss-cpu` → Similarity search & vector indexing  
-- `sentence-transformers` → Text embeddings  
-- `pytesseract`, `Pillow`, `pdf2image`, `PyMuPDF` → PDF/image parsing & OCR  
-- `streamlit` → Interactive web app  
+2. **Perform OCR:**  
+   Non-selectable pages are converted to images and processed with **Tesseract OCR**.
 
----
+3. **Chunk Text:**  
+   Split extracted text into **token-limited**, **context-preserving** overlapping passages.
 
-## 🔁 Core Workflow: RAG Pipeline
+4. **Embed & Index:**  
+   Convert chunks into embeddings using **Sentence-Transformers**, then store in **FAISS**.
 
-### 1. **Document Ingestion**  
-*(Files: `app.py`, `pdf_utils.py`, `ocr_utils.py`)*  
-- Extracts selectable text from PDFs via **PyMuPDF**.  
-- Converts non-selectable pages to images using **pdf2image** and processes them via **pytesseract** OCR.  
+5. **Query Stage:**  
+   Receive user questions via CLI or Streamlit.
 
-### 2. **Chunking & Indexing**  
-*(Files: `chunking.py`, `embeddings_index.py`)*  
-- Splits extracted text into **contextual overlapping chunks** using **tiktoken**.  
-- Converts chunks to **dense vector embeddings** with **Sentence-Transformers**.  
-- Stores embeddings in a **persistent FAISS index (`rag.index`)** linked with `passages.json`.  
+6. **Retrieve Context:**  
+   Top-K relevant passages are retrieved from the **FAISS** index.
 
-### 3. **Interactive Query**  
-*(Files: `app.py`, `streamlit_app.py`)*  
-- User submits a query (e.g., “Extract all key summary fields”).  
-- Query is embedded and compared to FAISS vectors.  
-- Retrieves top semantically relevant text passages as **context**.  
+7. **Gemini Generation:**  
+   Combine user query + context and send to **Gemini** with a strict JSON output prompt.
 
-### 4. **Generation**  
-*(File: `genai_client.py`)*  
-- The **retrieved context** and **user query** are sent to the **Gemini model**.  
-- The model follows a **strict, bank-specific prompt** to produce a structured **JSON output**.  
+8. **Output:**  
+   Return a valid structured **JSON** containing all extracted insights.
 
 ---
 
+## 🚀 Technologies Used
 
+| Category | Technology |
+|-----------|-------------|
+| 🐍 Language | Python 3.x |
+| ⚙️ LLM API | `google-genai` (Gemini) |
+| 🧠 Vector Index | `faiss-cpu`, `sentence-transformers` |
+| 🖼️ OCR & PDF | `pytesseract`, `PyMuPDF`, `pdf2image`, `Pillow` |
+| 💻 Web UI | `streamlit` |
+
+---
+
+### 💬 Example Query
+
+When running the interactive query mode:
+
+
+---
+
+## 🖼️ Sample Extracted JSON
+
+A typical Gemini output follows a **strict schema** and returns a single valid JSON object representing structured financial data.
+
+```json
+{
+  "account_info": {
+    "bank_name": "Example Bank",
+    "account_holder_name": "A. B. Customer",
+    "masked_account_number": "****4321",
+    "statement_month": "2025-10",
+    "account_type": "checking"
+  },
+  "summary_values": {
+    "opening_balance": 5000.00,
+    "closing_balance": 8500.50,
+    "total_credits": 10000.00,
+    "total_debits": 6500.50,
+    "average_daily_balance": 7000.00,
+    "overdraft_count": 0
+  },
+  "insights": [
+    "Account maintained < ₹10,000 average balance during October."
+  ]
+}
