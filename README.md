@@ -1,4 +1,4 @@
-# 🤖 Bank Statement Analyzer (RAG + OCR → Gemini)
+# 🤖 Bank Statement Parser  (RAG + OCR → Gemini)
 
 ## 📌 Overview
 
