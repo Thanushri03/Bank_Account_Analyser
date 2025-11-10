@@ -86,7 +86,7 @@ Built with **Python**, this solution leverages **Gemini API** and **FAISS** to c
 ### 💬 Example Query
 
 When running the interactive query mode:
-
+Extract the account holder name and closing balance.
 
 ---
 
