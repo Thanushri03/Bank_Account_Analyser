@@ -87,9 +87,6 @@ Built with **Python**, this solution leverages **Gemini API** and **FAISS** to c
 
 The following pseudo code outlines the **core ingestion and indexing pipeline** for the Bank Statement Analyzer.  
 It demonstrates how PDFs and images are processed, chunked, embedded, and stored in the FAISS vector index.
-
----
-
 ### 🧩 Ingestion Function
 
 ```pseudo
@@ -117,9 +114,6 @@ FUNCTION ingest_files(PATHS):
   RETURN CHUNKS_META
 END FUNCTION
 ```
-
----
-
 ### 🧠 Index Building Function
 
 ```pseudo
@@ -172,6 +166,9 @@ FUNCTION query_rag_system(QUERY):
 END FUNCTION
 
 ```
+
+---
+
 
 
 ### 💬 Example Query
